@@ -1,4 +1,5 @@
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws FileNotFoundException{
@@ -7,27 +8,13 @@ public class Main {
         Fila fila2 = new Fila("fila2", 1, 3, 3.0, 5.0);
 
 
-        double tempoChegadaMin = 2.0;
-        double tempoChegadaMax = 3.0;
-        double tempoAtendimentoMin = 2.0;
-        double tempoAtendimentoMax = 5.0;
-        double tempoAtendimentoMin2 = 3.0;
-        double tempoAtendimentoMax2 = 5.0;
-
         double tempoInicial = 2.5;
 
-        int numeroServidores1 = 2;
-        int capacidadeFila1 = 3;
-        int numeroServidores2 = 1;
-        int capacidadeFila2 = 3;
+        ArrayList<Fila> filaLst = new ArrayList<>();
+        filaLst.add(fila1);
+        filaLst.add(fila2);
 
-
-        Simulacao cenario0_simulacao0 = new Simulacao(tempoChegadaMin, tempoChegadaMax, 
-                                            tempoAtendimentoMin, tempoAtendimentoMax,
-                                            tempoAtendimentoMin2, tempoAtendimentoMax2, 
-                                            numeroServidores1,numeroServidores2, 
-                                            capacidadeFila1,capacidadeFila2, 
-                                            tempoInicial, 20,21,5000000011L,227,100000);
+        Simulacao cenario0_simulacao0 = new Simulacao( filaLst,tempoInicial, 20,21,5000000011L,227,100000);
         cenario0_simulacao0.ExecutaAlgoritmo("resultado.csv");
 
         // Primeira simulacao:
