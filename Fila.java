@@ -16,6 +16,9 @@ public class Fila {
     public double minArrival;
     public double maxArrival;
 
+    public int size;
+    public int loss;
+
     public double[] tempos;
 
     public Fila(String name, int servers, int capacity, double minService, double maxService) throws FileNotFoundException { 
@@ -30,7 +33,10 @@ public class Fila {
         this.tempos = new double[capacity];
     }
 
-    public Fila(int servers, int capacity, double minArrival, double maxArrival, double minService, double maxService) {
+    public Fila(String name,int servers, int capacity, double minArrival, double maxArrival, double minService, double maxService) throws FileNotFoundException {
+        this.name = name;
+
+        output = new PrintWriter(new File(name+".csv"));
         this.servers = servers;
         this.capacity = capacity;
 

@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,54 +72,22 @@ public class Simulacao{
 
     public int contadorEventos = 1;
 
+    private ArrayList<Fila> filaLst = new ArrayList<>();
+
     public Simulacao(double tempoChegadaMin1, double tempoChegadaMax1, 
         double tempoAtendimentoMin1, double tempoAtendimentoMax1,
         double tempoAtendimentoMin2, double tempoAtendimentoMax2, 
         int numeroServidores1, int numeroServidores2,
         int capacidadeFila1,int capacidadeFila2,
-        double tempoInicial, double x0, double a, double m, double c, double n){
-        this.fila1 = new Fila("Fila1", capacidadeFila1,numeroServidores1,
-            tempoChegadaMin1,tempoChegadaMax1,
-            tempoAtendimentoMin1,tempoAtendimentoMax1);
-        this.fila2 = new Fila("Fila2", capacidadeFila2,numeroServidores2,
-            tempoAtendimentoMin1,tempoAtendimentoMax1,
-            tempoAtendimentoMin2,tempoAtendimentoMax2);
+        double tempoInicial, double x0, double a, double m, double c, double n) throws FileNotFoundException{
+        
+        this.fila1 = new Fila("Fila1", numeroServidores1, capacidadeFila1, tempoChegadaMin1, tempoChegadaMax1, tempoAtendimentoMin1, tempoAtendimentoMax1);
+        this.fila2 = new Fila("Fila2", numeroServidores2, capacidadeFila2, tempoAtendimentoMin2, tempoAtendimentoMax2);
+        
+        filaLst.add(fila1);
+        filaLst.add(fila2);
 
         aleatoriosUtilizados = new GeradorNumeros(x0,a,m,c,n).getNumeros();
-
-        tempoTotal = 0.0000f;
-        tempoAnterior = 0.0000f;
-        aleatorioAtual = 0;
-        Estado e = new Estado("CH1", tempoInicial,0.0,contadorEventos);
-        contadorEventos++;
-        estados.add(e);
-        atual = e;
-    }
-
-
-    public Simulacao(
-        double tempoChegadaMin1, double tempoChegadaMax1, 
-        double tempoAtendimentoMin1, double tempoAtendimentoMax1,
-        double tempoAtendimentoMin2, double tempoAtendimentoMax2, 
-        int numeroServidores1, int numeroServidores2,
-        int capacidadeFila1,int capacidadeFila2,
-        double tempoInicial, double x0, double a, double m, double c, double n){
-            
-        this.tempoChegadaMin1 = tempoChegadaMin1;
-        this.tempoChegadaMax1 = tempoChegadaMax1;
-        this.tempoAtendimentoMin1 = tempoAtendimentoMin1;
-        this.tempoAtendimentoMax1 = tempoAtendimentoMax1;
-        this.tempoAtendimentoMin2 = tempoAtendimentoMin2;
-        this.tempoAtendimentoMax2 = tempoAtendimentoMax2;
-        this.numeroServidores1 = numeroServidores1;
-        this.numeroServidores2 = numeroServidores2;
-        this.capacidadeFila1 = capacidadeFila1;
-        this.capacidadeFila2 = capacidadeFila2;
-
-        aleatoriosUtilizados = new GeradorNumeros(x0,a,m,c,n).getNumeros();
-
-        estadoFila1 = new double[capacidadeFila1+1];
-        estadoFila2 = new double[capacidadeFila2+1];
 
         tempoTotal = 0.0000f;
         tempoAnterior = 0.0000f;
@@ -133,24 +102,24 @@ public class Simulacao{
         return ((b-a)*rand+a);
     }
 
-    public double contabilizaTempo(double atual, double anterior){
-        return atual - anterior;
+    public void contabilizaTempo(){
+        double deltaT = tempoTotal-tempoAnterior;
+        for (Fila fila : filaLst) {
+            fila.tempos[fila.size] += deltaT; 
+        }        
     }
 
-    public void chegadaFila1(){
+    public void chegada(Fila fila){
 
-        double deltaT = tempoTotal-tempoAnterior;
-        
-        estadoFila1[tamanhoFila1]+=deltaT;
-        estadoFila2[tamanhoFila2]+=deltaT;
+        contabilizaTempo();
 
-        if(tamanhoFila1 < capacidadeFila1){
+        if(fila.size < fila.capacity){
 
-            tamanhoFila1++;
+            fila.size++;
 
-            if(tamanhoFila1 <= numeroServidores1){
+            if(fila.size <= fila.servers){
 
-                double sorteioSaida = FormulaConversao(tempoAtendimentoMin1, tempoAtendimentoMax1, aleatoriosUtilizados.get(aleatorioAtual));
+                double sorteioSaida = FormulaConversao(fila.maxService, fila.maxService, aleatoriosUtilizados.get(aleatorioAtual));
                 Estado e = new Estado("P12",tempoTotal+sorteioSaida,sorteioSaida,contadorEventos);
                 contadorEventos++;
                 estados.add(e);
@@ -159,11 +128,11 @@ public class Simulacao{
             }
 
         }else {
-            numPerdas++;
+            fila.loss++;
         } 
 
         if (aleatorioAtual < aleatoriosUtilizados.size()) {
-            double sorteioChegada = FormulaConversao(tempoChegadaMin1, tempoChegadaMax1, aleatoriosUtilizados.get(aleatorioAtual));
+            double sorteioChegada = FormulaConversao(fila.minArrival, fila.maxArrival, aleatoriosUtilizados.get(aleatorioAtual));
             Estado e2 = new Estado("CH1",tempoTotal+sorteioChegada,sorteioChegada,contadorEventos);
             contadorEventos++;
             estados.add(e2);
@@ -172,29 +141,26 @@ public class Simulacao{
 
     }
 
-    public void transferFila1ToFila2(){
+    public void transferFila1ToFila2(Fila aFila1, Fila aFila2){
 
-        double deltaT = tempoTotal-tempoAnterior;
-        
-        estadoFila1[tamanhoFila1]+=deltaT;
-        estadoFila2[tamanhoFila2]+=deltaT;
+        contabilizaTempo();
 
-        tamanhoFila1--;
+        aFila1.size--;
 
-        if(tamanhoFila1 >= numeroServidores1){
-            double sorteioSaida = FormulaConversao(tempoAtendimentoMin1, tempoAtendimentoMax1, aleatoriosUtilizados.get(aleatorioAtual));
+        if(aFila1.size >= aFila1.servers){
+            double sorteioSaida = FormulaConversao(aFila1.minService, aFila1.maxService, aleatoriosUtilizados.get(aleatorioAtual));
             Estado e = new Estado("P12",tempoTotal+sorteioSaida,sorteioSaida,contadorEventos);
             contadorEventos++;
             estados.add(e);
             aleatorioAtual++;
         }
 
-        if(tamanhoFila2 < capacidadeFila2){
+        if(aFila2.size < aFila2.capacity){
 
-            tamanhoFila2++;
+            aFila2.size++;
 
-            if(tamanhoFila2 <= numeroServidores2){
-                double sorteioSaida = FormulaConversao(tempoAtendimentoMin2, tempoAtendimentoMax2, aleatoriosUtilizados.get(aleatorioAtual));
+            if(aFila2.size <= aFila2.servers){
+                double sorteioSaida = FormulaConversao(aFila2.minService, aFila2.maxService, aleatoriosUtilizados.get(aleatorioAtual));
                 Estado e = new Estado("SA2",tempoTotal+sorteioSaida,sorteioSaida,contadorEventos);
                 contadorEventos++;
                 estados.add(e);
@@ -202,24 +168,21 @@ public class Simulacao{
             }
 
         }else{
-            numPerdas++;
+            aFila2.loss++;
         }
 
     }
 
-    public void saidaFila2(){
+    public void saidaFila2(Fila aFila){
 
-        double deltaT = tempoTotal-tempoAnterior;
-        
-        estadoFila1[tamanhoFila1]+=deltaT;
-        estadoFila2[tamanhoFila2]+=deltaT;
+        contabilizaTempo();
 
 
-        tamanhoFila2--;
+        aFila.size--;
 
 
-        if(tamanhoFila2 >= numeroServidores2){
-            double sorteioSaida = FormulaConversao(tempoAtendimentoMin2, tempoAtendimentoMax2, aleatoriosUtilizados.get(aleatorioAtual));
+        if(aFila.size >= aFila.servers){
+            double sorteioSaida = FormulaConversao(aFila.minService, aFila.maxService, aleatoriosUtilizados.get(aleatorioAtual));
             Estado e = new Estado("SA2",tempoTotal+sorteioSaida,sorteioSaida,contadorEventos);
             contadorEventos++;
             estados.add(e);
@@ -281,11 +244,11 @@ public class Simulacao{
                 estados.remove(aux);
 
                 if(atual.getTipo().equals("CH1")){
-                    chegadaFila1();
+                    chegada(fila1);
                 }else if(atual.getTipo().equals("P12")){
-                    transferFila1ToFila2();
+                    transferFila1ToFila2(fila1, fila2);
                 }else if(atual.getTipo().equals("SA2")){
-                    saidaFila2();
+                    saidaFila2(fila2);
                 }
             
             }
@@ -340,85 +303,6 @@ public class Simulacao{
         System.out.println("\nNumero de perdas: " + numPerdas);
         System.out.printf("\nTempo total da simulacao: %.4f\n\n", tempoTotal);
 
-    }
-
-    public static void main(String[] args){
-
-        Fila fila1 = new Fila("fila1", 2, 3, 2.0, 3.0, 2.0, 5.0);
-        Fila fila2 = new Fila("fila2", 1, 3, 3.0, 5.0);
-
-
-        double tempoChegadaMin = 2.0;
-        double tempoChegadaMax = 3.0;
-        double tempoAtendimentoMin = 2.0;
-        double tempoAtendimentoMax = 5.0;
-        double tempoAtendimentoMin2 = 3.0;
-        double tempoAtendimentoMax2 = 5.0;
-
-        double tempoInicial = 2.5;
-
-        int numeroServidores1 = 2;
-        int capacidadeFila1 = 3;
-        int numeroServidores2 = 1;
-        int capacidadeFila2 = 3;
-
-
-        Simulacao cenario0_simulacao0 = new Simulacao(tempoChegadaMin, tempoChegadaMax, 
-                                            tempoAtendimentoMin, tempoAtendimentoMax,
-                                            tempoAtendimentoMin2, tempoAtendimentoMax2, 
-                                            numeroServidores1,numeroServidores2, 
-                                            capacidadeFila1,capacidadeFila2, 
-                                            tempoInicial, 20,21,5000000011L,227,100000);
-        cenario0_simulacao0.ExecutaAlgoritmo("resultado.csv");
-
-        // Primeira simulacao:
-
-        /* Simulacao cenario1_simulacao1 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                            numeroServidores, capacidadeFila, tempoInicial,20,21,5000000011L,227,100000);
-        cenario1_simulacao1.ExecutaAlgoritmo("G-G-1-5-simulacao1.csv");
-
-        Simulacao cenario1_simulacao2 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                            numeroServidores, capacidadeFila, tempoInicial,30,21,5000000011L,227,100000);
-        cenario1_simulacao2.ExecutaAlgoritmo("G-G-1-5-simulacao2.csv");
-
-        Simulacao cenario1_simulacao3 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                            numeroServidores, capacidadeFila, tempoInicial,40,21,5000000011L,227,100000);
-        cenario1_simulacao3.ExecutaAlgoritmo("G-G-1-5-simulacao3.csv");
-
-        Simulacao cenario1_simulacao4 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                            numeroServidores, capacidadeFila, tempoInicial,50,21,5000000011L,227,100000);
-        cenario1_simulacao4.ExecutaAlgoritmo("G-G-1-5-simulacao4.csv");
-
-        Simulacao cenario1_simulacao5 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                            numeroServidores, capacidadeFila, tempoInicial,60,21,5000000011L,227,100000);
-        cenario1_simulacao5.ExecutaAlgoritmo("G-G-1-5-simulacao5.csv"); */
-
-
-
-        // Segunda simulação:
-
-       /*  numeroServidores = 2;
-
-        Simulacao cenario2_simulacao1 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                                     numeroServidores, capacidadeFila, tempoInicial, 20,21,5000000011L,227,100000);
-        cenario2_simulacao1.ExecutaAlgoritmo("G-G-2-5-simulacao1.csv");
-
-        Simulacao cenario2_simulacao2 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                                     numeroServidores, capacidadeFila, tempoInicial,30,21,5000000011L,227,100000);
-        cenario2_simulacao2.ExecutaAlgoritmo("G-G-2-5-simulacao2.csv");
-
-        Simulacao cenario2_simulacao3 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                                    numeroServidores, capacidadeFila, tempoInicial,40,21,5000000011L,227,100000);
-        cenario2_simulacao3.ExecutaAlgoritmo("G-G-2-5-simulacao3.csv");
-
-        Simulacao cenario2_simulacao4 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                                    numeroServidores, capacidadeFila, tempoInicial,50,21,5000000011L,227,100000);
-        cenario2_simulacao4.ExecutaAlgoritmo("G-G-2-5-simulacao4.csv");
-
-        Simulacao cenario2_simulacao5 = new Simulacao(tempoChegadaMin, tempoChegadaMax, tempoAtendimentoMin, tempoAtendimentoMax, 
-                                                    numeroServidores, capacidadeFila, tempoInicial,60,21,5000000011L,227,100000);
-        cenario2_simulacao5.ExecutaAlgoritmo("G-G-2-5-simulacao5.csv"); */
-       
     }
 
 }
