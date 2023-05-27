@@ -171,12 +171,12 @@ public class Simulacao{
             PrintWriter pw = new PrintWriter(new File(nomeArquivo));
 
             pw.print("Evento;FILA1;FILA2;Tempo;");
-            for (int i = 0; i <= fila1.capacity; i++) {
+            for (int i = 0; i < fila1.capacity; i++) {
                 pw.print(i+";");
             }
             pw.println();
 
-            for (int i = 0; i <= fila2.capacity; i++) {
+            for (int i = 0; i < fila2.capacity; i++) {
                 pw.print(i+";");
             }
 
@@ -190,14 +190,14 @@ public class Simulacao{
                     pw.printf("(%d) %s;%d;%d;%.4f;", atual.numEvento, atual.tipo, fila1.size,fila2.size, tempoTotal);
                 }
 
-                for(int i = 0; i <= fila1.tempos.length; i++){
+                for(int i = 0; i < fila1.tempos.length; i++){
 
                     pw.printf("%.4f;",fila1.tempos[i]);
 
                 }
                 pw.println();
 
-                for(int i = 0; i <= fila2.tempos.length; i++){
+                for(int i = 0; i < fila2.tempos.length; i++){
 
                     pw.printf("%.4f;",fila2.tempos[i]);
 
@@ -260,7 +260,7 @@ public class Simulacao{
         System.out.printf("P12: %.1f ... %.1f\n", fila1.minService, fila1.maxService);
         System.out.printf("SA2: %.1f ... %.1f\n", fila2.minService, fila2.maxService);
         System.out.println("Estado 1\t\tTempo 1\t\tProbabilidade 1");
-        for(int i = 0; i <= fila1.capacity; i++){    
+        for(int i = 0; i < fila1.capacity; i++){    
             double porcentagem = fila1.tempos[i] / tempoTotal * 100;       
             System.out.printf("%d", i);
             System.out.printf("\t\t%.4f", fila1.tempos[i]);
@@ -268,7 +268,7 @@ public class Simulacao{
             System.out.println("%");
         }
         System.out.println("Estado 2\t\tTempo 2\t\tProbabilidade 2");
-        for(int i = 0; i <= fila2.capacity; i++){    
+        for(int i = 0; i < fila2.capacity; i++){    
             double porcentagem = fila2.tempos[i] / tempoTotal * 100;       
             System.out.printf("%d", i);
             System.out.printf("\t\t%.4f", fila2.tempos[i]);

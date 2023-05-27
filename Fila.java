@@ -30,7 +30,7 @@ public class Fila {
         this.capacity = capacity;
         this.minService = minService;
         this.maxService = maxService;
-        this.tempos = new double[capacity];
+        this.tempos = new double[capacity+1];
     }
 
     public Fila(String name,int servers, int capacity, double minArrival, double maxArrival, double minService, double maxService) throws FileNotFoundException {
@@ -46,6 +46,6 @@ public class Fila {
         this.minService = minService;
         this.maxService = maxService;
 
-        this.tempos = new double[capacity];
+        this.tempos = new double[capacity+1];
     }
 }
