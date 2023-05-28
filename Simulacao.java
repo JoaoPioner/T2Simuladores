@@ -2,7 +2,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import java.util.Locale;
 
 
 
@@ -31,7 +34,7 @@ public class Simulacao{
         }
 
         public String toString(){
-            return "Tipo: "+tipo+"; Tempo: "+tempo+"; Sorteio: "+sorteio;
+            return "Tipo: "+tipo+", Tempo: "+tempo+", Sorteio: "+sorteio;
         }
     }
 
@@ -54,13 +57,32 @@ public class Simulacao{
 
     public Simulacao(ArrayList<Fila> filaLst,double tempoInicial, double x0, double a, double m, double c, double n) throws FileNotFoundException{
         
+        Locale.setDefault(Locale.US);
 
         this.fila1 = filaLst.get(0);
         this.fila2 = filaLst.get(1);
 
         this.filaLst = filaLst;
         
-        aleatoriosUtilizados = new GeradorNumeros(x0,a,m,c,n).getNumeros();
+        //aleatoriosUtilizados = new GeradorNumeros(x0,a,m,c,n).getNumeros();
+
+        aleatoriosUtilizados = Arrays.asList(
+        0.9921,
+        0.0004,
+        0.5534,
+        0.2761,
+        0.3398,
+        0.8963,
+        0.9023,
+        0.0132,
+        0.4569,
+        0.5121,
+        0.9208,
+        0.0171,
+        0.2299,
+        0.8545,
+        0.6001,
+        0.2921);
 
         tempoTotal = 0.0000f;
         tempoAnterior = 0.0000f;
@@ -122,6 +144,7 @@ public class Simulacao{
 
         if(aFila1.size >= aFila1.servers){
             double sorteioSaida = FormulaConversao(aFila1.minService, aFila1.maxService, aleatoriosUtilizados.get(aleatorioAtual));
+            System.out.println("sorteio: " + sorteioSaida);
             Estado e = new Estado("P12",tempoTotal+sorteioSaida,sorteioSaida,contadorEventos);
             contadorEventos++;
             estados.add(e);
@@ -168,41 +191,36 @@ public class Simulacao{
         int perdas = fila1.loss+fila2.loss;
 
         try{
-            PrintWriter pw = new PrintWriter(new File(nomeArquivo));
+            //PrintWriter pw = new PrintWriter(new File(nomeArquivo));
 
-            pw.print("Evento;FILA1;FILA2;Tempo;");
-            for (int i = 0; i < fila1.capacity; i++) {
-                pw.print(i+";");
-            }
-            pw.println();
-
-            for (int i = 0; i < fila2.capacity; i++) {
-                pw.print(i+";");
-            }
-
-            pw.println();
+            for (Fila fila : filaLst) {
+                fila.output.print("Evento,F1,F2,Tempo,");
+                for (int i = 0; i <= fila.capacity; i++) {
+                    fila.output.print(i+",");
+                }
+                fila.output.println();
+            } 
 
             while(aleatorioAtual < aleatoriosUtilizados.size()){
             
                 if (tempoTotal == 0) {
-                    pw.printf("-;%d;%d;%.4f;", fila1.size,fila2.size, tempoTotal);
+                    for (Fila fila : filaLst) {
+                        fila.output.printf("-,%d,%d,%.4f,", fila1.size,fila2.size, tempoTotal);
+                        for (int i = 0; i < fila.tempos.length; i++) {
+                            fila.output.printf("%.4f,", fila.tempos[i]);
+                        }
+                        fila.output.println();
+                    }
                 } else {
-                    pw.printf("(%d) %s;%d;%d;%.4f;", atual.numEvento, atual.tipo, fila1.size,fila2.size, tempoTotal);
+                    for (Fila fila : filaLst) {
+                        fila.output.printf("(%d) %s,%d,%d,%.4f,", atual.numEvento, atual.tipo, fila1.size,fila2.size, tempoTotal);    
+                        for (int i = 0; i < fila.tempos.length; i++) {
+                            fila.output.printf("%.4f,", fila.tempos[i]);
+                        }
+                        fila.output.println();
+                    }
+                    
                 }
-
-                for(int i = 0; i < fila1.tempos.length; i++){
-
-                    pw.printf("%.4f;",fila1.tempos[i]);
-
-                }
-                pw.println();
-
-                for(int i = 0; i < fila2.tempos.length; i++){
-
-                    pw.printf("%.4f;",fila2.tempos[i]);
-
-                }
-                pw.println();
 
                 Estado aux = estados.get(0);
                 
@@ -227,21 +245,22 @@ public class Simulacao{
             
             }
 
-            pw.printf("(%d) %s;%d;%d;%.4f;", atual.numEvento, atual.tipo, fila1.size,fila2.size, tempoTotal);
-            for(int i = 0; i <= fila1.capacity; i++){            
-                pw.printf("%.4f;",fila1.tempos[i]);
-            }
-            pw.println();
-            for(int i = 0; i <= fila2.capacity; i++){            
-                pw.printf("%.4f;",fila2.tempos[i]);
-            }
-            pw.println();
 
+            for (Fila fila : filaLst) {
+                fila.output.printf("(%d) %s,%d,%d,%.4f,", atual.numEvento, atual.tipo, fila1.size,fila2.size, tempoTotal);
+                for (int i = 0; i < fila.tempos.length; i++) {
+                    fila.output.printf("%.4f,", fila.tempos[i]);
+                }
+                fila.output.println();
             
-            pw.println("Numero de perdas: " + perdas);
+                fila.output.println("Numero de perdas: " + perdas);
             
 
-            pw.close();
+                fila.output.close();
+            }
+
+            
+            
 
         }catch(Exception e){
             e.printStackTrace();
@@ -260,7 +279,7 @@ public class Simulacao{
         System.out.printf("P12: %.1f ... %.1f\n", fila1.minService, fila1.maxService);
         System.out.printf("SA2: %.1f ... %.1f\n", fila2.minService, fila2.maxService);
         System.out.println("Estado 1\t\tTempo 1\t\tProbabilidade 1");
-        for(int i = 0; i < fila1.capacity; i++){    
+        for(int i = 0; i <= fila1.capacity; i++){    
             double porcentagem = fila1.tempos[i] / tempoTotal * 100;       
             System.out.printf("%d", i);
             System.out.printf("\t\t%.4f", fila1.tempos[i]);
@@ -268,7 +287,7 @@ public class Simulacao{
             System.out.println("%");
         }
         System.out.println("Estado 2\t\tTempo 2\t\tProbabilidade 2");
-        for(int i = 0; i < fila2.capacity; i++){    
+        for(int i = 0; i <= fila2.capacity; i++){    
             double porcentagem = fila2.tempos[i] / tempoTotal * 100;       
             System.out.printf("%d", i);
             System.out.printf("\t\t%.4f", fila2.tempos[i]);

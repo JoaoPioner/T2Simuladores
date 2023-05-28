@@ -21,17 +21,17 @@ public class Fila {
 
     public double[] tempos;
 
-    public Fila(String name, int servers, int capacity, double minService, double maxService) throws FileNotFoundException { 
-        this.name = name;
+    // public Fila(String name, int servers, int capacity, double minService, double maxService) throws FileNotFoundException { 
+    //     this.name = name;
 
-        output = new PrintWriter(new File(name+".csv"));
+    //     output = new PrintWriter(new File(name+".csv"));
 
-        this.servers = servers;
-        this.capacity = capacity;
-        this.minService = minService;
-        this.maxService = maxService;
-        this.tempos = new double[capacity+1];
-    }
+    //     this.servers = servers;
+    //     this.capacity = capacity;
+    //     this.minService = minService;
+    //     this.maxService = maxService;
+    //     this.tempos = new double[capacity+1];
+    // }
 
     public Fila(String name,int servers, int capacity, double minArrival, double maxArrival, double minService, double maxService) throws FileNotFoundException {
         this.name = name;

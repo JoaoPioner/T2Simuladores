@@ -5,7 +5,7 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException{
 
         Fila fila1 = new Fila("fila1", 2, 3, 2.0, 3.0, 2.0, 5.0);
-        Fila fila2 = new Fila("fila2", 1, 3, 3.0, 5.0);
+        Fila fila2 = new Fila("fila2", 1, 3, 0, 0, 3.0, 5.0);
 
 
         double tempoInicial = 2.5;
