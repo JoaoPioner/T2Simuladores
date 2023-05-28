@@ -64,25 +64,25 @@ public class Simulacao{
 
         this.filaLst = filaLst;
         
-        //aleatoriosUtilizados = new GeradorNumeros(x0,a,m,c,n).getNumeros();
+        aleatoriosUtilizados = new GeradorNumeros(x0,a,m,c,n).getNumeros();
 
-        aleatoriosUtilizados = Arrays.asList(
-        0.9921,
-        0.0004,
-        0.5534,
-        0.2761,
-        0.3398,
-        0.8963,
-        0.9023,
-        0.0132,
-        0.4569,
-        0.5121,
-        0.9208,
-        0.0171,
-        0.2299,
-        0.8545,
-        0.6001,
-        0.2921);
+        // aleatoriosUtilizados = Arrays.asList(
+        // 0.9921,
+        // 0.0004,
+        // 0.5534,
+        // 0.2761,
+        // 0.3398,
+        // 0.8963,
+        // 0.9023,
+        // 0.0132,
+        // 0.4569,
+        // 0.5121,
+        // 0.9208,
+        // 0.0171,
+        // 0.2299,
+        // 0.8545,
+        // 0.6001,
+        // 0.2921);
 
         tempoTotal = 0.0000f;
         tempoAnterior = 0.0000f;
@@ -114,7 +114,8 @@ public class Simulacao{
 
             if(fila.size <= fila.servers){
 
-                double sorteioSaida = FormulaConversao(fila.maxService, fila.maxService, aleatoriosUtilizados.get(aleatorioAtual));
+                double sorteioSaida = FormulaConversao(fila.minService, fila.maxService, aleatoriosUtilizados.get(aleatorioAtual));
+                //System.out.println("sorteio: " + sorteioSaida + " - " + fila.minService + " - " + fila.maxService + " - " + aleatoriosUtilizados.get(aleatorioAtual));
                 Estado e = new Estado("P12",tempoTotal+sorteioSaida,sorteioSaida,contadorEventos);
                 contadorEventos++;
                 estados.add(e);
@@ -144,7 +145,7 @@ public class Simulacao{
 
         if(aFila1.size >= aFila1.servers){
             double sorteioSaida = FormulaConversao(aFila1.minService, aFila1.maxService, aleatoriosUtilizados.get(aleatorioAtual));
-            System.out.println("sorteio: " + sorteioSaida);
+            //System.out.println("sorteio: " + sorteioSaida + " - " + aFila1.minService + " - " + aFila1.maxService + " - " + aleatoriosUtilizados.get(aleatorioAtual));
             Estado e = new Estado("P12",tempoTotal+sorteioSaida,sorteioSaida,contadorEventos);
             contadorEventos++;
             estados.add(e);
@@ -187,7 +188,7 @@ public class Simulacao{
 
     }
 
-    public void ExecutaAlgoritmo(String nomeArquivo){
+    public void ExecutaAlgoritmo(){
         int perdas = fila1.loss+fila2.loss;
 
         try{
@@ -253,14 +254,28 @@ public class Simulacao{
                 }
                 fila.output.println();
             
-                fila.output.println("Numero de perdas: " + perdas);
+                fila.output.println("Numero de perdas: " + fila.loss);
             
+
+                fila.output.println("Estado "+ fila.name+",Tempo,Probabilidade");
+                for(int i = 0; i <= fila.capacity; i++){    
+                    double porcentagem = fila.tempos[i] / tempoTotal * 100;       
+                    fila.output.printf("%d", i);
+                    fila.output.printf(",%.4f", fila.tempos[i]);
+                    // System.out.println("porcentegem antes do arrendondamento: " + porcentagem);
+                    // porcentagem = Math.round(porcentagem * 100.0) / 100.0;
+                    // System.out.println("porcentegem depois do arrendondamento: " + porcentagem);
+                    fila.output.printf(",%.2f", porcentagem);
+                    fila.output.println("%");
+                }
+
+                fila.output.printf("Total,%.4f,100.00",tempoTotal);
+                fila.output.println("%");
 
                 fila.output.close();
+
             }
 
-            
-            
 
         }catch(Exception e){
             e.printStackTrace();
@@ -278,7 +293,8 @@ public class Simulacao{
         System.out.printf("CH1: %.1f ... %.1f\n", fila1.minArrival, fila1.maxArrival);
         System.out.printf("P12: %.1f ... %.1f\n", fila1.minService, fila1.maxService);
         System.out.printf("SA2: %.1f ... %.1f\n", fila2.minService, fila2.maxService);
-        System.out.println("Estado 1\t\tTempo 1\t\tProbabilidade 1");
+        System.out.println();
+        System.out.println("Estados F1\tTempos F1\tProbabilidades F1");
         for(int i = 0; i <= fila1.capacity; i++){    
             double porcentagem = fila1.tempos[i] / tempoTotal * 100;       
             System.out.printf("%d", i);
@@ -286,7 +302,8 @@ public class Simulacao{
             System.out.printf("\t\t%.2f", porcentagem);
             System.out.println("%");
         }
-        System.out.println("Estado 2\t\tTempo 2\t\tProbabilidade 2");
+        System.out.println();
+        System.out.println("Estados F2\tTempos F2\tProbabilidades F2");
         for(int i = 0; i <= fila2.capacity; i++){    
             double porcentagem = fila2.tempos[i] / tempoTotal * 100;       
             System.out.printf("%d", i);
