@@ -302,6 +302,7 @@ public class Simulacao{
             System.out.printf("\t\t%.2f", porcentagem);
             System.out.println("%");
         }
+        System.out.println("\nNumero de perdas F1: " + fila1.loss);
         System.out.println();
         System.out.println("Estados F2\tTempos F2\tProbabilidades F2");
         for(int i = 0; i <= fila2.capacity; i++){    
@@ -311,8 +312,9 @@ public class Simulacao{
             System.out.printf("\t\t%.2f", porcentagem);
             System.out.println("%");
         }
+        System.out.println("\nNumero de perdas F2: " + fila2.loss);
 
-        System.out.println("\nNumero de perdas: " + perdas);
+        //System.out.println("\nNumero de perdas: " + perdas);
         System.out.printf("\nTempo total da simulacao: %.4f\n\n", tempoTotal);
 
     }
